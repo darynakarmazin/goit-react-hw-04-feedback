@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
 import { Wrapper } from './App.styled';
 
@@ -7,55 +7,58 @@ import { FeedbackOptions } from 'components/feedbackOptions/FeedbackOptions';
 import { Section } from 'components/section/Section';
 import { Notification } from 'components/notification/Notification';
 
-export class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+export function App() {
+  const [good, setGoodFtb] = useState(0);
+  const [neutral, setNeutralFtb] = useState(0);
+  const [bad, setBadFtb] = useState(0);
+
+  const countTotalFeedback = () => {
+    return good + neutral + bad;
   };
 
-  countTotalFeedback = () => {
-    return this.state.good + this.state.neutral + this.state.bad;
+  const countPositiveFeedbackPercentage = () => {
+    return Math.round((good / (good + neutral + bad)) * 100);
   };
 
-  countPositiveFeedbackPercentage = () => {
-    return Math.round(
-      (this.state.good /
-        (this.state.good + this.state.neutral + this.state.bad)) *
-        100
-    );
-  };
-
-  handleIncrement = event => {
+  const handleIncrement = event => {
     event.preventDefault();
-    this.setState(prevState => {
-      return { [event.target.name]: prevState[event.target.name] + 1 };
-    });
+    const { name } = event.target;
+    switch (name) {
+      case 'good':
+        setGoodFtb(prevGoodFtb => prevGoodFtb + 1);
+        break;
+      case 'neutral':
+        setNeutralFtb(prevNeutralFtb => prevNeutralFtb + 1);
+        break;
+      case 'bad':
+        setBadFtb(prevBadFtb => prevBadFtb + 1);
+        break;
+      default:
+        return;
+    }
   };
 
-  render() {
-    return (
-      <Wrapper>
-        <Section title="Please leave feed back">
-          <FeedbackOptions
-            options={Object.keys(this.state)}
-            onLeaveFeedback={this.handleIncrement}
+  return (
+    <Wrapper>
+      <Section title="Please leave feed back">
+        <FeedbackOptions
+          options={['good', 'neutral', 'bad']}
+          onLeaveFeedback={handleIncrement}
+        />
+      </Section>
+      {countTotalFeedback() ? (
+        <Section title="Statistics">
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={countTotalFeedback}
+            positivePercentage={countPositiveFeedbackPercentage}
           />
         </Section>
-        {this.countTotalFeedback() ? (
-          <Section title="Statistics">
-            <Statistics
-              good={this.state.good}
-              neutral={this.state.neutral}
-              bad={this.state.bad}
-              total={this.countTotalFeedback}
-              positivePercentage={this.countPositiveFeedbackPercentage}
-            />
-          </Section>
-        ) : (
-          <Notification message="There is no feedback" />
-        )}
-      </Wrapper>
-    );
-  }
+      ) : (
+        <Notification message="There is no feedback" />
+      )}
+    </Wrapper>
+  );
 }
